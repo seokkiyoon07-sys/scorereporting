@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1" />
+  <title>모의평가 성적통지표</title>
+  <style>
+    /* --------- 기본 설정 --------- */
+    :root{
+      --ink:#0e0f12;            /* 본문 텍스트/선 색 */
+      --muted:#60646c;          /* 보조 텍스트 */
+      --grid:#1e2330;           /* 테이블 선 */
+      --bg:#ffffff;             /* 바탕 */
+      --accent:#111827;         /* 제목 */
+      --gap:10px;               /* 외곽 여백 단위 */
+    }
+    *{box-sizing:border-box}
+    html,body{height:100%}
+    body{margin:0;background:var(--bg);color:var(--ink);font:14px/1.4 "Pretendard","Noto Sans KR",system-ui,-apple-system,Segoe UI,Roboto,Helvetica,Arial,"Apple SD Gothic Neo","Malgun Gothic",sans-serif}
+
+    .page{max-width:900px;display:flex;flex-direction:column;justify-content:flex-start;margin:0 auto;padding:20px;border:1px solid #dcdfe4;border-radius:10px;box-shadow:0 8px 24px rgba(0,0,0,.06)}
+
+    /* 제목 */
+    .title{display:flex;align-items:baseline;gap:10px;justify-content:center;margin:0 0 16px}
+    .title h1{font-size:26px;letter-spacing:.2px;margin:0;color:var(--accent);font-weight:800}
+    .title .sub{font-size:14px;color:var(--muted)}
+
+    /* 정보 표 상단 (수험번호/성명 등) */
+    table{border-collapse:collapse;width:100%}
+    .grid{border:2px solid var(--grid)}
+    .grid th,.grid td{border:1.5px solid var(--grid);padding:8px 10px}
+    .grid th{background:#f7f8fb;font-weight:700;text-align:center}
+    .grid .c{text-align:center}
+
+    .meta{margin-bottom:14px}
+    .meta th{width:96px;white-space:nowrap}
+    .meta td{min-width:100px;white-space:nowrap}
+
+    /* 메인 성적 표 */
+    .scores thead th{font-size:13px}
+    .scores .area{width:88px}
+    .scores .subcol{background:#fafafc;font-weight:600}
+
+    .scores thead .group-2{background:#f2f4f8;font-weight:700}
+
+    /* 헤더 하단 소제목 (국어/수학 선택과목 표기용) */
+    .thstack{display:flex;flex-direction:column;align-items:center;line-height:1.2}
+    .thstack small{font-size:11px;color:var(--muted);font-weight:600;margin-top:2px}
+     
+
+    /* 탐구 2과목 2열(세로 분할) 표현 */
+
+    /* (B) 탐구 2과목 중앙 경계선이 위/아래 테두리와 맞닿도록: 셀 패딩 제거 */
+
+    /* 대각선 비적용(제2외국어·한문) 셀 표현 */
+    .na{position:relative;color:#444}
+    .na:before{content:none}
+    .na span{position:relative;z-index:1}/* 응시자수 열은 수치 가독성 향상 */
+    .num{font-variant-numeric:tabular-nums}
+
+    /* 오답번호 레이아웃 */
+    .wrong{margin-top:10px}
+    .wrong-grid{display:grid;grid-template-columns:160px 1fr;column-gap:8px;row-gap:6px;align-items:center}
+    .wrong-grid .label{font-weight:700;text-align:right;padding-right:6px;color:var(--ink)}
+    .wrong-grid .box{min-height:28px;border:1px dashed var(--grid);padding:6px 8px;border-radius:6px;word-break:break-word}
+    .wrong-grid .box[contenteditable]{outline:none}
+    
+
+    /* 인쇄 설정 */
+    @page{size:A4 portrait;margin:14mm}
+    @media print{
+      body{background:#fff}
+      /* A4 세로, 위아래 14mm 여백 → 내용 높이 약 269mm 한 장 맞춤 */
+      .page{
+        box-shadow:none;border:none;
+        width:auto;max-width:900px;
+        height:calc(297mm - 28mm);max-height:calc(297mm - 28mm);
+        margin:auto; /* 가로·세로 정중앙 배치 */
+        padding:0;overflow:hidden;break-inside:avoid
+      }
+      .title{margin:6mm 0 4mm}
+      .grid th,.grid td{padding:4px 6px}
+    }
+      /* A4 세로, 위아래 14mm 여백 → 내용 높이 약 269mm 한 장 맞춤 */
+      .page{box-shadow:none;border:none;margin:0 auto;padding:0;height:calc(297mm - 28mm);max-height:calc(297mm - 28mm);overflow:hidden;break-inside:avoid}
+      .title{margin:6mm 0 4mm}
+      .grid th,.grid td{padding:4px 6px}
+    }
+  </style>
+</head>
+<body>
+  <div class="page">
+    <div class="title">
+      <h1>2026학년도 대학수학능력시험 6월 모의평가 성적통지표</h1>
+      <!-- <span class="sub">(샘플 레이아웃)</span> -->
+    </div>
+
+    <!-- 상단 인적/학교 정보 표 -->
+    <table class="grid meta">
+      <colgroup>
+        <col style="width:110px" />
+        <col style="width:180px" />
+        <col style="width:70px" />
+        <col style="width:110px" />
+        <col style="width:90px" />
+        <col style="width:auto" />
+        <col style="width:70px" />
+        <col style="width:70px" />
+      </colgroup>
+      <tr>
+        <th>수험번호</th>
+        <td class="num">370720206</td>
+        <th>성&nbsp;&nbsp;명</th>
+        <td>송준표</td>
+        <th>성별</th>
+        <td>남</td>
+        <th>반</th>
+        <td class="c">2</td>
+      </tr>
+      <tr>
+        <th>생년월일</th>
+        <td>03.03.31.</td>
+        <th>시 · 도</th>
+        <td>경기</td>
+        <th>학교명(학원명)</th>
+        <td>SN독학기숙학원</td>
+        <th>번호</th>
+        <td class="c">6</td>
+      </tr>
+    </table>
+
+    <!-- 메인 성적 표 -->
+    <table class="grid scores">
+      <colgroup>
+        <col style="width:80px" />  <!-- 열 이름 -->
+        <col style="width:140px" /> <!-- 한국사·선택과목 칸 폭 동일성 보정 -->
+        <col style="width:140px" />
+        <col style="width:140px" />
+        <col style="width:140px" />
+        <col style="width:140px" /> <!-- 탐구1 -->
+        <col style="width:140px" /> <!-- 탐구2 -->
+        <col style="width:150px" /> <!-- 제2외국어·한문 -->
+      </colgroup>
+      <thead>
+        <tr>
+          <th class="area">영역</th>
+          <th>한국사</th>
+          <th><div class="thstack"><span>국어</span><small>언어와 매체</small></div></th>
+          <th><div class="thstack"><span>수학</span><small>미적분</small></div></th>
+          <th>영어</th>
+          <th class="group-2">생명과학Ⅰ</th>
+          <th class="group-2">지구과학Ⅰ</th>
+          <th>제2외국어·한문</th>
+        </tr>
+      </thead>
+      <tbody>
+        <!-- 선택과목 -->
+        <!-- 원점수 -->
+        <tr>
+          <th class="subcol">원점수</th>
+          <td class="c num"></td>
+          <td class="c num"></td>
+          <td class="c num"></td>
+          <td class="c num"></td>
+          <td class="c num"></td>
+          <td class="c num"></td>
+          <td class="c num na"><span>—</span></td>
+        </tr>
+
+        <!-- 표준점수 -->
+        <tr>
+          <th class="subcol">표준점수</th>
+          <td class="c num">—</td>
+          <td class="c num">130</td>
+          <td class="c num">136</td>
+          <td class="c num">—</td>
+          <td class="c num">64</td>
+          <td class="c num">69</td>
+          <td class="c num">—</td>
+        </tr>
+
+        <!-- 백분위 -->
+        <tr>
+          <th class="subcol">백분위</th>
+          <td class="c num">—</td>
+          <td class="c num">96</td>
+          <td class="c num">99</td>
+          <td class="c num">—</td>
+          <td class="c num">95</td>
+          <td class="c num">96</td>
+          <td class="c num">—</td>
+        </tr>
+
+        <!-- 등급 -->
+        <tr>
+          <th class="subcol">등&nbsp;&nbsp;급</th>
+          <td class="c num">1</td>
+          <td class="c num">1</td>
+          <td class="c num">1</td>
+          <td class="c num">1</td>
+          <td class="c num">1</td>
+          <td class="c num">1</td>
+          <td class="c num">—</td>
+        </tr>
+
+        <!-- 응시자수 -->
+        <tr>
+          <th class="subcol">응시자수</th>
+          <td class="c num">421,623</td>
+          <td class="c num">419,252</td>
+          <td class="c num">415,830</td>
+          <td class="c num">420,974</td>
+          <td class="c num">92,121</td>
+          <td class="c num">93,191</td>
+          <td class="c num na"><span>—</span></td>
+        </tr>
+      </tbody>
+    </table>
+
+    <!-- 하단 오답번호 섹션 -->
+    <section class="wrong">
+      <h3 style="margin:10px 0 6px;font-size:14px;color:var(--accent);">과목별 오답번호</h3>
+      <div class="wrong-grid">
+        <div class="label">한국사</div>
+        <div class="box" data-field="wrong.kor_hist"></div>
+
+        <div class="label">국어(언어와 매체)</div>
+        <div class="box" data-field="wrong.korean"></div>
+
+        <div class="label">수학(미적분)</div>
+        <div class="box" data-field="wrong.math"></div>
+
+        <div class="label">영어</div>
+        <div class="box" data-field="wrong.english"></div>
+
+        <div class="label">생명과학Ⅰ</div>
+        <div class="box" data-field="wrong.inq1"></div>
+
+        <div class="label">지구과학Ⅰ</div>
+        <div class="box" data-field="wrong.inq2"></div>
+
+        <div class="label">제2외국어·한문</div>
+        <div class="box" data-field="wrong.sec"></div>
+      </div>
+    </section>
+
+    <p style="margin-top:8px;color:#7b8190;font-size:12px">※ 본 템플릿은 레이아웃 재현용으로 제작되었습니다. 점수 및 오답번호는 예시입니다.</p>
+  </div>
+</body>
+</html>
