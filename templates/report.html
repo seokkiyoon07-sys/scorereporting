@@ -1,0 +1,128 @@
+<!doctype html>
+<html lang="ko">
+<head>
+<meta charset="utf-8" />
+<meta name="viewport" content="width=device-width,initial-scale=1" />
+<title>{{ student.name }} 성적표</title>
+
+<style>
+  /* 화면 기본 */
+  :root { --page-width: 210mm; --page-height: 297mm; }
+  html, body { margin:0; padding:0; }
+  body { font-family: "Noto Sans KR", system-ui, -apple-system, "Segoe UI", Roboto, "Apple SD Gothic Neo", "Malgun Gothic", sans-serif; }
+
+  /* A4 인쇄 설정 */
+  @page { size: A4 portrait; margin: 12mm; }
+
+  /* 인쇄 전용 보정 */
+  @media print {
+    .page { box-shadow: none; }
+  }
+
+  .page {
+    width: var(--page-width);
+    min-height: var(--page-height);
+    background: #fff;
+    box-sizing: border-box;
+  }
+
+  /* 상단 60% 영역에 박스 중앙 배치 */
+  .top-viewport {
+    position: relative;
+    height: calc(var(--page-height) * 0.60 - 24mm); /* 여백 보정 */
+    display: grid;
+    place-items: center;
+  }
+
+  .card {
+    width: 85%;
+    max-width: 170mm;
+    border: 1px solid #000;
+    border-radius: 12px;
+    padding: 16px 20px;
+  }
+
+  .header {
+    display:flex; align-items:baseline; justify-content:space-between; gap:12px; margin-bottom:8px;
+  }
+  .brand { font-weight:700; font-size:18px; white-space: nowrap; } /* 한 줄 고정 */
+  .title { font-weight:700; font-size:20px; }
+
+  .meta { display:flex; gap:16px; font-size:13px; color:#333; margin-bottom:10px; }
+  .meta span b { font-weight:700; }
+
+  table {
+    width:100%; border-collapse:collapse; margin-top:8px; font-size:13px;
+  }
+  th, td { border:1px solid #000; padding:6px 8px; text-align:center; }
+  th { background:#f2f2f2; }
+
+  .section-title { margin-top:12px; font-weight:700; }
+  .wrong-answers { font-size:12px; line-height:1.5; }
+  .wrong-answers dl { display:grid; grid-template-columns: 140px 1fr; row-gap:4px; column-gap:12px; margin:8px 0 0; }
+  .wrong-answers dt { font-weight:700; }
+  .wrong-answers dd { margin:0; word-wrap:break-word; }
+
+  .footer-note { margin:12px 0 0; font-size:11px; color:#555; }
+</style>
+</head>
+
+<body>
+  <div class="page">
+    <div class="top-viewport">
+      <div class="card">
+        <div class="header">
+          <div class="brand">SN독학기숙학원</div>
+          <div class="title">개인 성적표</div>
+        </div>
+
+        <div class="meta">
+          <span><b>이름</b> {{ student.name }}</span>
+          <span><b>학번</b> {{ student.sid }}</span>
+          <span><b>회차</b> {{ report.exam_name }}</span>
+          <span><b>발행일</b> {{ report.issued_at }}</span>
+        </div>
+
+        <table>
+          <thead>
+            <tr>
+              <th>과목</th>
+              <th>원점수</th>
+              <th>표준점수</th>
+              <th>백분위</th>
+            </tr>
+          </thead>
+          <tbody>
+            {% for row in scores %}
+            <tr>
+              <td>{{ row.subject }}</td>
+              <td>{{ row.raw }}</td>
+              <td>{{ row.std }}</td>
+              <td>{{ row.pr }}</td>
+            </tr>
+            {% endfor %}
+          </tbody>
+        </table>
+
+        <div class="section-title">과목별 오답번호</div>
+        <div class="wrong-answers">
+          <dl>
+            <dt>한국사</dt><dd>{{ wrongs.한국사|join(", ") if wrongs.한국사 else "-" }}</dd>
+            <dt>국어(언매)</dt><dd>{{ wrongs["국어(언매)"]|join(", ") if wrongs["국어(언매)"] else "-" }}</dd>
+            <dt>수학(미적)</dt><dd>{{ wrongs["수학(미적)"]|join(", ") if wrongs["수학(미적)"] else "-" }}</dd>
+            <dt>영어</dt><dd>{{ wrongs.영어|join(", ") if wrongs.영어 else "-" }}</dd>
+            <dt>생명과학1</dt><dd>{{ wrongs["생명과학1"]|join(", ") if wrongs["생명과학1"] else "-" }}</dd>
+            <dt>지구과학1</dt><dd>{{ wrongs["지구과학1"]|join(", ") if wrongs["지구과학1"] else "-" }}</dd>
+            <dt>제2외국어/한문</dt><dd>{{ wrongs["제2외국어/한문"]|join(", ") if wrongs["제2외국어/한문"] else "-" }}</dd>
+          </dl>
+        </div>
+
+        <div class="footer-note">
+          ※ 본 성적표는 내부 학습 리포트용이며, 표준점수/백분위는 업로드한 기준표를 기반으로 계산되었습니다.
+        </div>
+      </div>
+    </div>
+  </div>
+</body>
+</html>
+

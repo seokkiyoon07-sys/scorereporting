@@ -69,19 +69,17 @@ Thumbs.db
 # Project specific
 output/
 output_pdf/
-*.html
+*.exe
+*.zip
 *.pdf
 temp/
-tmp/
+logs/
 
-# Logs
-*.log
+# Build artifacts
+build/
+dist/
+*.spec
 
-# Database
-*.db
-*.sqlite
-*.sqlite3
-
-# Config files with sensitive data
-config.ini
-secrets.json
+# Temporary files
+*.tmp
+*.temp
