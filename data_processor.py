@@ -7,26 +7,44 @@ class DataProcessor:
         self.subject_data = {}
         self.grade_cutoff_data = None
         self.standard_scores = {}
+        self.student_names = {}  # 수험번호 -> 이름 매핑
+        # 과목 코드 매핑
         self.subject_codes = {
-            # 국어 영역 (01-06)
-            "국어": "01", "언어와 매체": "05", "화법과 작문": "06",
+            # 국어 영역
+            "화법과 작문": "1",
+            "언어와 매체": "2",
             
-            # 수학 영역 (02-05, 09)  
-            "수학": "02", "확률과 통계": "03", "미적분": "04", "기하": "09",
+            # 수학 영역
+            "확률과 통계": "1",
+            "미분과 적분": "2",
+            "기하": "3",
             
-            # 언어 영역 (07)
-            "영어": "07",
+            # 영어
+            "영어": "1",
             
-            # 한국사 (08)
-            "한국사": "08",
+            # 한국사
+            "한국사": "1",
             
             # 사회탐구 영역 (11-19)
-            "생활과 윤리": "11", "윤리와 사상": "12", "한국지리": "13", "세계지리": "14",
-            "동아시아사": "15", "세계사": "16", "경제": "17", "정치와 법": "18", "사회·문화": "19",
+            "생활과 윤리": "11",
+            "윤리와 사상": "12",
+            "한국지리": "13",
+            "세계지리": "14",
+            "동아시아사": "15",
+            "세계사": "16",
+            "경제": "17",
+            "정치와 법": "18",
+            "사회·문화": "19",
             
-            # 과학탐구 영역 (21-28)
-            "물리학 I": "21", "화학 I": "22", "생명과학 I": "23", "지구과학 I": "24",
-            "물리학 II": "25", "화학 II": "26", "생명과학 II": "27", "지구과학 II": "28"
+            # 과학탐구 영역 (20-27)
+            "물리학Ⅰ": "20",
+            "화학Ⅰ": "21",
+            "생명과학Ⅰ": "22",
+            "지구과학Ⅰ": "23",
+            "물리학Ⅱ": "24",
+            "화학Ⅱ": "25",
+            "생명과학Ⅱ": "26",
+            "지구과학Ⅱ": "27"
         }
         
     def load_subject_data(self, subject: str, file_path: str):
@@ -67,7 +85,7 @@ class DataProcessor:
             print(f"[데이터] 로드된 데이터 컬럼: {list(df.columns)}")
             
             # 필수 컬럼 확인
-            required_columns = ['이름', '선택과목', '선택과목코드', '총점', '정답수', '오답번호']
+            required_columns = ['수험번호', '과목코드', '총점', '만점', '정답수', '오답번호']
             missing_columns = [col for col in required_columns if col not in df.columns]
             
             if missing_columns:
@@ -79,7 +97,7 @@ class DataProcessor:
             # 데이터 정리
             print("[정리] 데이터 정리 시작...")
             original_count = len(df)
-            df = df.dropna(subset=['이름', '총점'])  # 이름과 총점이 있는 행만 유지
+            df = df.dropna(subset=['수험번호', '총점'])  # 수험번호와 총점이 있는 행만 유지
             cleaned_count = len(df)
             
             if cleaned_count < original_count:
@@ -96,12 +114,17 @@ class DataProcessor:
                 raise ValueError(f"총점 데이터 변환 오류: {str(e)}")
             
             try:
-                df['정답수'] = pd.to_numeric(df['정답수'], errors='coerce')
-                invalid_counts = df['정답수'].isna().sum()
-                if invalid_counts > 0:
-                    print(f"[경고] {invalid_counts}개의 정답수 데이터가 유효하지 않습니다.")
+                df['만점'] = pd.to_numeric(df['만점'], errors='coerce')
+                invalid_maxes = df['만점'].isna().sum()
+                if invalid_maxes > 0:
+                    print(f"[경고] {invalid_maxes}개의 만점 데이터가 유효하지 않습니다.")
             except Exception as e:
-                raise ValueError(f"정답수 데이터 변환 오류: {str(e)}")
+                raise ValueError(f"만점 데이터 변환 오류: {str(e)}")
+            
+            try:
+                df['과목코드'] = df['과목코드'].astype(str)
+            except Exception as e:
+                raise ValueError(f"과목코드 데이터 변환 오류: {str(e)}")
             
             # 최종 데이터 검증
             final_count = len(df)
@@ -124,22 +147,100 @@ class DataProcessor:
             error_details = traceback.format_exc()
             raise Exception(f"[오류] {subject} 데이터 로드 중 예상치 못한 오류:\n{str(e)}\n\n상세 오류:\n{error_details}")
             
-    def load_grade_cutoff_data(self, file_path: str):
-        """등급컷 및 표점 데이터 로드"""
+    def load_student_names(self, file_path: str):
+        """학생명 파일 로드 (수험번호 -> 이름 매핑)"""
         try:
+            print(f"[학생명] 파일 로드 시작: {file_path}")
+            
             if file_path.endswith('.csv'):
-                df = pd.read_csv(file_path, encoding='utf-8')
+                try:
+                    df = pd.read_csv(file_path, encoding='utf-8-sig')
+                except UnicodeDecodeError:
+                    df = pd.read_csv(file_path, encoding='cp949')
             elif file_path.endswith('.xlsx'):
                 df = pd.read_excel(file_path)
             else:
-                raise ValueError("지원하지 않는 파일 형식입니다.")
-                
-            # 등급컷 데이터 정리
-            self.grade_cutoff_data = df
-            print(f"등급컷 데이터 로드 완료: {len(df)}개 과목")
+                raise ValueError("지원하지 않는 파일 형식입니다. (.csv 또는 .xlsx만 가능)")
+            
+            # 필수 컬럼 확인
+            if '수험번호' not in df.columns:
+                raise ValueError(f"필수 컬럼이 누락되었습니다: ['수험번호']")
+            
+            # 이름 컬럼 찾기 (이름 또는 성명)
+            name_column = None
+            if '이름' in df.columns:
+                name_column = '이름'
+            elif '성명' in df.columns:
+                name_column = '성명'
+            else:
+                raise ValueError(f"필수 컬럼이 누락되었습니다: ['이름' 또는 '성명']\n현재 컬럼: {df.columns.tolist()}")
+            
+            print(f"[학생명] 사용 컬럼: 수험번호, {name_column}")
+            
+            # 수험번호 -> 이름 매핑 딕셔너리 생성
+            self.student_names = dict(zip(df['수험번호'].astype(str), df[name_column]))
+            
+            print(f"[학생명] 데이터 로드 완료: {len(self.student_names)}명")
+            print(f"[샘플] 첫 3명: {list(self.student_names.items())[:3]}")
             
         except Exception as e:
-            raise Exception(f"등급컷 데이터 로드 중 오류: {str(e)}")
+            import traceback
+            error_details = traceback.format_exc()
+            raise Exception(f"학생명 데이터 로드 중 오류:\n{str(e)}\n\n상세:\n{error_details}")
+    
+    def load_grade_cutoff_data(self, file_path: str):
+        """등급컷 및 표점 데이터 로드 (선택사항 포함)"""
+        try:
+            print(f"[등급컷] 파일 로드 시작: {file_path}")
+            
+            if file_path.endswith('.csv'):
+                try:
+                    df = pd.read_csv(file_path, encoding='utf-8-sig')
+                except UnicodeDecodeError:
+                    df = pd.read_csv(file_path, encoding='cp949')
+            elif file_path.endswith('.xlsx'):
+                df = pd.read_excel(file_path)
+            else:
+                raise ValueError("지원하지 않는 파일 형식입니다. (.csv 또는 .xlsx만 가능)")
+            
+            print(f"[등급컷] 로드된 컬럼: {list(df.columns)}")
+            print(f"[등급컷] 데이터 행 수: {len(df)}")
+            
+            # 필수 컬럼 확인 (과목명, 과목코드만 필수)
+            required_columns = ['과목명', '과목코드']
+            missing_columns = [col for col in required_columns if col not in df.columns]
+            
+            if missing_columns:
+                raise ValueError(f"필수 컬럼이 누락되었습니다: {missing_columns}")
+            
+            # 선택 컬럼 확인
+            optional_groups = {
+                '등급컷': ['1등급컷', '2등급컷', '3등급컷', '4등급컷', '5등급컷', '6등급컷', '7등급컷', '8등급컷', '9등급컷'],
+                '표준점수': ['만점표점', '1등급표점', '2등급표점', '3등급표점', '4등급표점', '5등급표점', '6등급표점', '7등급표점', '8등급표점', '9등급표점'],
+                '백분위': ['1등급백분위', '2등급백분위', '3등급백분위', '4등급백분위', '5등급백분위', '6등급백분위', '7등급백분위', '8등급백분위', '9등급백분위']
+            }
+            
+            available_data = []
+            for group_name, columns in optional_groups.items():
+                has_columns = any(col in df.columns for col in columns)
+                if has_columns:
+                    available_data.append(group_name)
+            
+            print(f"[등급컷] 사용 가능한 데이터: {', '.join(available_data) if available_data else '없음'}")
+            
+            # 등급컷 데이터 저장
+            self.grade_cutoff_data = df
+            print(f"[등급컷] 데이터 로드 완료: {len(df)}개 과목")
+            
+            # 샘플 데이터 출력
+            print(f"[샘플] 첫 3개 과목:")
+            for idx, row in df.head(3).iterrows():
+                print(f"  - {row['과목명']} ({row['과목코드']})")
+            
+        except Exception as e:
+            import traceback
+            error_details = traceback.format_exc()
+            raise Exception(f"등급컷 데이터 로드 중 오류:\n{str(e)}\n\n상세:\n{error_details}")
             
     def set_grade_cutoff_data(self, grade_cutoff_data: Dict[str, Dict[int, float]]):
         """등급컷 데이터 직접 설정"""
@@ -158,9 +259,13 @@ class DataProcessor:
         try:
             print("[처리] 전체 데이터 처리 시작...")
             
+            if not self.student_names:
+                raise Exception("[오류] 학생명 데이터가 로드되지 않았습니다. 먼저 학생명 파일을 업로드해주세요.")
+            
             if not self.subject_data:
                 raise Exception("[오류] 과목 데이터가 로드되지 않았습니다. 먼저 과목 파일을 업로드해주세요.")
             
+            print(f"[학생명] 로드된 학생 수: {len(self.student_names)}명")
             print(f"[과목] 로드된 과목 수: {len(self.subject_data)}")
             for subject in self.subject_data.keys():
                 print(f"  - {subject}: {len(self.subject_data[subject])}명")
@@ -183,13 +288,27 @@ class DataProcessor:
                 
                 for idx, row in df.iterrows():
                     try:
-                        # 학생 이름 처리 (다양한 오류 상황 대응)
+                        # 수험번호로 학생 이름 찾기
                         try:
-                            student_name = str(row['이름']).strip()
+                            exam_number = str(row['수험번호']).strip()
+                            
+                            # 빈 수험번호 처리
+                            if not exam_number or exam_number == 'nan' or exam_number == 'None':
+                                print(f"[경고] 행 {idx}: 빈 수험번호 건너뜀 (과목: {subject})")
+                                skipped_students += 1
+                                continue
+                            
+                            # 학생명 파일에서 이름 찾기
+                            if exam_number not in self.student_names:
+                                print(f"[경고] 행 {idx}: 수험번호 '{exam_number}'에 해당하는 학생명을 찾을 수 없습니다 (과목: {subject})")
+                                skipped_students += 1
+                                continue
+                            
+                            student_name = self.student_names[exam_number]
                             
                             # 빈 이름, NaN, None 처리
                             if not student_name or student_name == 'nan' or student_name == 'None':
-                                print(f"[경고] 행 {idx}: 빈 이름 건너뜀 (과목: {subject})")
+                                print(f"[경고] 행 {idx}: 빈 이름 건너뜀 (수험번호: {exam_number}, 과목: {subject})")
                                 skipped_students += 1
                                 continue
                             
@@ -200,13 +319,14 @@ class DataProcessor:
                                 continue
                                 
                         except Exception as e:
-                            print(f"[경고] 행 {idx}: 이름 처리 오류 '{row.get('이름', 'Unknown')}' (과목: {subject}): {str(e)}")
+                            print(f"[경고] 행 {idx}: 수험번호/이름 처리 오류 (과목: {subject}): {str(e)}")
                             import traceback
                             traceback.print_exc()
                             skipped_students += 1
                             continue
                         
-                        student_id = self._generate_student_id(student_name)
+                        # 학생 ID 생성 (수험번호 사용)
+                        student_id = exam_number
                         
                         # 학생 데이터 초기화
                         if student_id not in student_data:
