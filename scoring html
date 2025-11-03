@@ -81,11 +81,6 @@
       .title{margin:6mm 0 4mm}
       .grid th,.grid td{padding:4px 6px}
     }
-      /* A4 세로, 위아래 14mm 여백 → 내용 높이 약 269mm 한 장 맞춤 */
-      .page{box-shadow:none;border:none;margin:0 auto;padding:0;height:calc(297mm - 28mm);max-height:calc(297mm - 28mm);overflow:hidden;break-inside:avoid}
-      .title{margin:6mm 0 4mm}
-      .grid th,.grid td{padding:4px 6px}
-    }
   </style>
 </head>
 <body>

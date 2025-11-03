@@ -4,13 +4,30 @@ import os
 from typing import Dict, Any
 import webbrowser
 import tempfile
+import html
 from playwright.sync_api import sync_playwright
-# from simple_pdf_generator import SimplePDFGenerator  # 제거됨
 
 class HTMLPDFGenerator:
     def __init__(self):
         pass
         
+    def _sanitize_filename(self, filename: str) -> str:
+        """파일명에서 특수문자 제거 및 안전하게 처리"""
+        import re
+        # 파일명으로 사용할 수 없는 문자 제거
+        filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+        # 연속된 언더스코어 제거
+        filename = re.sub(r'_+', '_', filename)
+        # 앞뒤 공백 및 언더스코어 제거
+        filename = filename.strip(' _')
+        # 빈 문자열 처리
+        if not filename:
+            filename = "untitled"
+        # 파일명 길이 제한 (Windows 최대 255자, 확장자 포함)
+        if len(filename) > 200:
+            filename = filename[:200]
+        return filename
+    
     def generate_html_based_pdf(self, student_data: Dict[str, Any], output_dir: str, pdf_title: str = "학생 성적표", save_html: bool = False):
         """Jinja2 템플릿 + Playwright 헤드리스 PDF 생성"""
         try:
@@ -29,7 +46,10 @@ class HTMLPDFGenerator:
         try:
             student_name = student_data['name']
             student_id = student_data['student_id']
-            html_filename = f"{student_name}_{student_id}.html"
+            # 파일명 안전 처리
+            safe_name = self._sanitize_filename(student_name)
+            safe_id = self._sanitize_filename(student_id)
+            html_filename = f"{safe_name}_{safe_id}.html"
             html_filepath = os.path.join(output_dir, html_filename)
             
             html_content = self._create_html_template(student_data, pdf_title)
@@ -63,11 +83,12 @@ class HTMLPDFGenerator:
             
     def _create_html_template(self, student_data: Dict[str, Any], pdf_title: str) -> str:
         """HTML 템플릿 생성"""
-        # 학생 정보 추출
-        student_name = student_data['name']
-        student_id = student_data['student_id']
+        # 학생 정보 추출 (HTML 이스케이프 처리)
+        student_name = html.escape(str(student_data['name']))
+        student_id = html.escape(str(student_data['student_id']))
+        pdf_title_escaped = html.escape(str(pdf_title))
         
-        # 과목별 데이터 정리
+        # 과목별 데이터 정리 (HTML 이스케이프 처리)
         subjects_data = {}
         for subject, info in student_data['subjects'].items():
             # 한국사와 영어는 표점과 백분위 없음
@@ -76,10 +97,10 @@ class HTMLPDFGenerator:
                     'raw': str(int(info.get('total_score', 0))),
                     'std': '—',
                     'percent': '—',
-                    'grade': str(info.get('grade', '—')),
+                    'grade': html.escape(str(info.get('grade', '—'))),
                     'testees': '—',
-                    'subject_name': info.get('subject_name', ''),
-                    'wrong_answers': self._format_wrong_answers(info.get('wrong_answers', []))
+                    'subject_name': html.escape(str(info.get('subject_name', ''))),
+                    'wrong_answers': html.escape(self._format_wrong_answers(info.get('wrong_answers', [])))
                 }
             else:
                 # None 값들을 적절히 처리
@@ -89,12 +110,12 @@ class HTMLPDFGenerator:
                 
                 subjects_data[subject] = {
                     'raw': str(int(info.get('total_score', 0))),
-                    'std': str(standard_score) if standard_score is not None else '—',
-                    'percent': str(percentile) if percentile is not None else '—',
-                    'grade': str(grade) if grade is not None else '—',
+                    'std': html.escape(str(standard_score)) if standard_score is not None else '—',
+                    'percent': html.escape(str(percentile)) if percentile is not None else '—',
+                    'grade': html.escape(str(grade)) if grade is not None else '—',
                     'testees': '—',
-                    'subject_name': info.get('subject_name', ''),
-                    'wrong_answers': self._format_wrong_answers(info.get('wrong_answers', []))
+                    'subject_name': html.escape(str(info.get('subject_name', ''))),
+                    'wrong_answers': html.escape(self._format_wrong_answers(info.get('wrong_answers', [])))
                 }
         
         html_content = f"""<!DOCTYPE html>
@@ -102,7 +123,7 @@ class HTMLPDFGenerator:
 <head>
   <meta charset="utf-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1" />
-  <title>{pdf_title}</title>
+  <title>{pdf_title_escaped}</title>
   <style>
     /* --------- 기본 설정 --------- */
     :root{{
@@ -177,7 +198,7 @@ class HTMLPDFGenerator:
 <body>
   <div class="page">
     <div class="title">
-      <h1>{pdf_title}</h1>
+      <h1>{pdf_title_escaped}</h1>
     </div>
 
     <table class="grid meta">

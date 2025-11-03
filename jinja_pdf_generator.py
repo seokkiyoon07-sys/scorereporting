@@ -1,6 +1,7 @@
 import os
 import pathlib
 import datetime
+import re
 from typing import Dict, Any, List
 from jinja2 import Environment, FileSystemLoader, select_autoescape
 from playwright.sync_api import sync_playwright
@@ -18,6 +19,22 @@ class JinjaPDFGenerator:
             loader=FileSystemLoader(self.templates_dir),
             autoescape=select_autoescape(["html"])
         )
+    
+    def _sanitize_filename(self, filename: str) -> str:
+        """파일명에서 특수문자 제거 및 안전하게 처리"""
+        # 파일명으로 사용할 수 없는 문자 제거
+        filename = re.sub(r'[<>:"/\\|?*]', '_', filename)
+        # 연속된 언더스코어 제거
+        filename = re.sub(r'_+', '_', filename)
+        # 앞뒤 공백 및 언더스코어 제거
+        filename = filename.strip(' _')
+        # 빈 문자열 처리
+        if not filename:
+            filename = "untitled"
+        # 파일명 길이 제한 (Windows 최대 255자, 확장자 포함)
+        if len(filename) > 200:
+            filename = filename[:200]
+        return filename
     
     def generate_pdf(self, student_data: Dict[str, Any], output_dir: str, pdf_title: str = "학생 성적표", save_html: bool = False):
         """Jinja2 템플릿 + Playwright로 PDF 생성"""
@@ -65,7 +82,9 @@ class JinjaPDFGenerator:
             
             # HTML 파일 저장 (옵션)
             if save_html:
-                html_filename = f"{student['name']}_{student['sid']}.html"
+                safe_name = self._sanitize_filename(student['name'])
+                safe_sid = self._sanitize_filename(student['sid'])
+                html_filename = f"{safe_name}_{safe_sid}.html"
                 html_filepath = os.path.join(output_dir, html_filename)
                 with open(html_filepath, 'w', encoding='utf-8') as f:
                     f.write(html_content)
@@ -81,7 +100,9 @@ class JinjaPDFGenerator:
     def _html_to_pdf(self, html_content: str, output_dir: str, student_name: str, student_id: str):
         """HTML을 PDF로 변환 (Playwright 변환기 사용)"""
         try:
-            pdf_filename = f"{student_name}_{student_id}.pdf"
+            safe_name = self._sanitize_filename(student_name)
+            safe_id = self._sanitize_filename(student_id)
+            pdf_filename = f"{safe_name}_{safe_id}.pdf"
             pdf_path = os.path.join(output_dir, pdf_filename)
             
             # Playwright 변환기 사용

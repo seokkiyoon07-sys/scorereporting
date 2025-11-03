@@ -455,7 +455,7 @@ class DataProcessor:
                 
                 # 표점 및 백분위 계산
                 standard_score, percentile = self._calculate_standard_score_and_percentile_new(
-                    total_score, grade, grade_cutoffs, max_standard_score
+                    total_score, grade, grade_cutoffs, max_standard_score, matched_subject
                 )
                 
                 return {
@@ -488,19 +488,26 @@ class DataProcessor:
             
     def _calculate_standard_score_and_percentile_new(self, score: float, grade: int, 
                                                    grade_cutoffs: Dict[int, float], 
-                                                   max_standard_score: float) -> tuple:
+                                                   max_standard_score: float,
+                                                   subject_name: str = None) -> tuple:
         """표준점수 및 백분위 계산 (등급별 표점 사용)"""
         try:
             # 한국사와 영어는 표점과 백분위 없음
             if max_standard_score == 0:
                 return None, None
             
-            # 등급별 표점이 설정되어 있는지 확인
-            subject_name = None
-            for key in self.grade_standard_scores.keys():
-                if key in str(score) or str(score) in key:  # 임시로 점수로 찾기
-                    subject_name = key
-                    break
+            # 과목명이 전달되지 않은 경우 등급별 표점에서 찾기 시도
+            if not subject_name or subject_name not in self.grade_standard_scores:
+                # 등급별 표점에서 과목명 찾기 (subject_name이 전달되지 않은 경우에만)
+                if subject_name:
+                    # 전달된 과목명이 등급별 표점에 없으면 기본 계산
+                    pass
+                else:
+                    # 등급별 표점 키를 순회하며 찾기 (마지막 수단)
+                    for key in self.grade_standard_scores.keys():
+                        if key in self.grade_cutoff_data:
+                            subject_name = key
+                            break
             
             if subject_name and subject_name in self.grade_standard_scores:
                 grade_std_scores = self.grade_standard_scores[subject_name]
