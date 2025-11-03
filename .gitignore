@@ -4,82 +4,49 @@ __pycache__/
 *$py.class
 *.so
 .Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# PyInstaller
-*.manifest
-*.spec
-
-# Installer logs
-pip-log.txt
-pip-delete-this-directory.txt
-
-# Unit test / coverage reports
-htmlcov/
-.tox/
-.coverage
-.coverage.*
-.cache
-nosetests.xml
-coverage.xml
-*.cover
-.hypothesis/
-.pytest_cache/
-
-# Environments
-.env
-.venv
-env/
 venv/
+env/
 ENV/
-env.bak/
-venv.bak/
+
+# Flask
+instance/
+.webassets-cache
+
+# 업로드 파일
+uploads/
+outputs/
+output/
+
+# 로그
+*.log
+server.log
+
+# 환경 변수
+.env
 
 # IDE
 .vscode/
 .idea/
 *.swp
 *.swo
-*~
 
 # OS
 .DS_Store
-.DS_Store?
-._*
-.Spotlight-V100
-.Trashes
-ehthumbs.db
 Thumbs.db
 
-# Project specific
-output/
-output_pdf/
-*.exe
-*.zip
-*.pdf
-temp/
-logs/
-
-# Build artifacts
+# 빌드
 build/
 dist/
-*.spec
+*.egg-info/
 
-# Temporary files
+# 테스트
+.pytest_cache/
+.coverage
+htmlcov/
+
+# Railway
+.railway/
+
+# 임시 파일
 *.tmp
-*.temp
+*.bak

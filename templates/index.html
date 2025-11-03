@@ -1,0 +1,647 @@
+<!DOCTYPE html>
+<html lang="ko">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>성적 관리 시스템</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", "Noto Sans KR", "Malgun Gothic", sans-serif;
+            background: linear-gradient(135deg, #667eea 0%, #764ba2 100%);
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1200px;
+            margin: 0 auto;
+        }
+
+        .header {
+            text-align: center;
+            color: white;
+            margin-bottom: 40px;
+        }
+
+        .header h1 {
+            font-size: 2.5rem;
+            margin-bottom: 10px;
+        }
+
+        .header p {
+            font-size: 1.1rem;
+            opacity: 0.9;
+        }
+
+        .card {
+            background: white;
+            border-radius: 12px;
+            padding: 30px;
+            box-shadow: 0 10px 40px rgba(0,0,0,0.1);
+            margin-bottom: 30px;
+        }
+
+        .card h2 {
+            color: #333;
+            margin-bottom: 20px;
+            font-size: 1.5rem;
+            border-bottom: 2px solid #667eea;
+            padding-bottom: 10px;
+        }
+
+        .form-group {
+            margin-bottom: 25px;
+        }
+
+        .form-group label {
+            display: block;
+            margin-bottom: 8px;
+            color: #555;
+            font-weight: 600;
+        }
+
+        .form-group input[type="text"],
+        .form-group input[type="file"] {
+            width: 100%;
+            padding: 12px;
+            border: 2px solid #e0e0e0;
+            border-radius: 6px;
+            font-size: 14px;
+            transition: border-color 0.3s;
+        }
+
+        .form-group input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .file-input-wrapper {
+            position: relative;
+            overflow: hidden;
+            display: inline-block;
+            width: 100%;
+        }
+
+        .file-input-wrapper input[type="file"] {
+            position: absolute;
+            left: -9999px;
+        }
+
+        .file-input-label {
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            padding: 12px 20px;
+            background: #f5f5f5;
+            border: 2px dashed #ccc;
+            border-radius: 6px;
+            cursor: pointer;
+            transition: all 0.3s;
+        }
+
+        .file-input-label:hover {
+            background: #ebebeb;
+            border-color: #667eea;
+        }
+
+        .file-input-label.has-file {
+            background: #e8f5e9;
+            border-color: #4caf50;
+        }
+
+        .subject-list {
+            display: grid;
+            grid-template-columns: repeat(auto-fill, minmax(300px, 1fr));
+            gap: 15px;
+            margin-top: 15px;
+        }
+
+        .subject-item {
+            background: #f9f9f9;
+            padding: 15px;
+            border-radius: 8px;
+            border: 1px solid #e0e0e0;
+        }
+
+        .subject-item label {
+            font-weight: 600;
+            color: #333;
+            margin-bottom: 8px;
+            display: block;
+        }
+
+        .btn {
+            padding: 12px 30px;
+            border: none;
+            border-radius: 6px;
+            font-size: 16px;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s;
+            margin-right: 10px;
+        }
+
+        .btn-primary {
+            background: #667eea;
+            color: white;
+        }
+
+        .btn-primary:hover {
+            background: #5568d3;
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(102, 126, 234, 0.4);
+        }
+
+        .btn-success {
+            background: #4caf50;
+            color: white;
+        }
+
+        .btn-success:hover {
+            background: #43a047;
+        }
+
+        .btn-danger {
+            background: #f44336;
+            color: white;
+        }
+
+        .btn-danger:hover {
+            background: #da190b;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .button-group {
+            display: flex;
+            gap: 10px;
+            margin-top: 20px;
+        }
+
+        .alert {
+            padding: 15px 20px;
+            border-radius: 6px;
+            margin-bottom: 20px;
+            display: none;
+        }
+
+        .alert-success {
+            background: #d4edda;
+            color: #155724;
+            border: 1px solid #c3e6cb;
+        }
+
+        .alert-error {
+            background: #f8d7da;
+            color: #721c24;
+            border: 1px solid #f5c6cb;
+        }
+
+        .alert-info {
+            background: #d1ecf1;
+            color: #0c5460;
+            border: 1px solid #bee5eb;
+        }
+
+        .progress {
+            width: 100%;
+            height: 30px;
+            background: #f0f0f0;
+            border-radius: 15px;
+            overflow: hidden;
+            margin: 20px 0;
+            display: none;
+        }
+
+        .progress-bar {
+            height: 100%;
+            background: linear-gradient(90deg, #667eea 0%, #764ba2 100%);
+            transition: width 0.3s;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            color: white;
+            font-weight: 600;
+        }
+
+        .file-list {
+            margin-top: 20px;
+        }
+
+        .file-item {
+            background: #f9f9f9;
+            padding: 10px 15px;
+            border-radius: 6px;
+            margin-bottom: 10px;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+        }
+
+        .file-item .file-name {
+            font-weight: 500;
+        }
+
+        .file-item .download-btn {
+            padding: 6px 15px;
+            background: #667eea;
+            color: white;
+            text-decoration: none;
+            border-radius: 4px;
+            font-size: 14px;
+        }
+
+        .file-item .download-btn:hover {
+            background: #5568d3;
+        }
+
+        @media (max-width: 768px) {
+            .header h1 {
+                font-size: 2rem;
+            }
+
+            .subject-list {
+                grid-template-columns: 1fr;
+            }
+
+            .button-group {
+                flex-direction: column;
+            }
+
+            .btn {
+                width: 100%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <h1>📊 성적 관리 시스템</h1>
+            <p>학생 성적 데이터를 업로드하고 성적표를 생성하세요</p>
+        </div>
+
+        <!-- 알림 메시지 -->
+        <div id="alert" class="alert"></div>
+
+        <!-- 진행률 표시 -->
+        <div id="progress" class="progress">
+            <div id="progress-bar" class="progress-bar">0%</div>
+        </div>
+
+        <!-- 샘플 파일 다운로드 카드 -->
+        <div class="card">
+            <h2>📥 샘플 파일 다운로드</h2>
+            <p style="color: #666; margin-bottom: 20px;">
+                처음 사용하시나요? 아래 샘플 파일을 다운로드하여 형식을 확인하세요.
+            </p>
+            <div style="display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 10px;">
+                <a href="/download-sample/sample_students.csv" class="btn btn-success" style="text-decoration: none; text-align: center; display: block;">
+                    ✨ 학생명 샘플 (필수)
+                </a>
+                <a href="/download-sample/sample_grade_cutoff.csv" class="btn btn-primary" style="text-decoration: none; text-align: center; display: block;">
+                    ⭐ 등급컷 샘플 (선택)
+                </a>
+                <a href="/download-sample/sample_korean.csv" class="btn btn-primary" style="text-decoration: none; text-align: center; display: block;">
+                    📄 국어 샘플
+                </a>
+                <a href="/download-sample/sample_math.csv" class="btn btn-primary" style="text-decoration: none; text-align: center; display: block;">
+                    📐 수학 샘플
+                </a>
+                <a href="/download-sample/sample_english.csv" class="btn btn-primary" style="text-decoration: none; text-align: center; display: block;">
+                    🔤 영어 샘플
+                </a>
+                <a href="/download-sample/sample_history.csv" class="btn btn-primary" style="text-decoration: none; text-align: center; display: block;">
+                    📜 한국사 샘플
+                </a>
+                <a href="/download-sample/sample_inquiry.csv" class="btn btn-primary" style="text-decoration: none; text-align: center; display: block;">
+                    🔬 탐구 샘플 (통합)
+                </a>
+            </div>
+        </div>
+
+        <!-- 설정 카드 -->
+        <div class="card">
+            <h2>📝 성적표 설정</h2>
+            <div class="form-group">
+                <label for="pdf_title">성적표 제목</label>
+                <input type="text" id="pdf_title" placeholder="예: 2024학년도 10월 모의고사" value="모의고사 성적표">
+            </div>
+            <div class="form-group">
+                <label for="exam_name">시험 회차</label>
+                <input type="text" id="exam_name" placeholder="예: 10월 모의고사" value="2024학년도 모의고사">
+            </div>
+        </div>
+
+        <!-- 파일 업로드 카드 -->
+        <div class="card">
+            <h2>📁 파일 업로드</h2>
+            
+            <!-- 학생명 파일 (필수) -->
+            <div class="form-group">
+                <label for="student_names">학생명 파일 ✨ (필수)</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="student_names" accept=".csv,.xlsx" onchange="handleFileSelect(this, 'student_names_label')">
+                    <label for="student_names" class="file-input-label" id="student_names_label">
+                        📄 파일 선택 (CSV 또는 Excel)
+                    </label>
+                </div>
+                <small style="color: #666; margin-top: 5px; display: block;">
+                    형식: 수험번호, 이름
+                </small>
+            </div>
+            
+            <!-- 등급컷 파일 (선택사항) -->
+            <div class="form-group">
+                <label for="grade_cutoff">등급컷 파일 ⭐ (선택사항)</label>
+                <div class="file-input-wrapper">
+                    <input type="file" id="grade_cutoff" accept=".csv,.xlsx" onchange="handleFileSelect(this, 'grade_cutoff_label')">
+                    <label for="grade_cutoff" class="file-input-label" id="grade_cutoff_label">
+                        📄 파일 선택 (CSV 또는 Excel) - 선택사항
+                    </label>
+                </div>
+                <small style="color: #666; margin-top: 5px; display: block;">
+                    등급컷 정보가 없어도 성적표 생성 가능합니다
+                </small>
+            </div>
+
+            <!-- 과목 파일들 -->
+            <div class="form-group">
+                <label>과목별 성적 파일</label>
+                <div class="subject-list">
+                    <div class="subject-item">
+                        <label for="subject_korean">국어</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="subject_korean" accept=".csv,.xlsx" onchange="handleFileSelect(this, 'korean_label')">
+                            <label for="subject_korean" class="file-input-label" id="korean_label">📄 파일 선택</label>
+                        </div>
+                    </div>
+
+                    <div class="subject-item">
+                        <label for="subject_math">수학</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="subject_math" accept=".csv,.xlsx" onchange="handleFileSelect(this, 'math_label')">
+                            <label for="subject_math" class="file-input-label" id="math_label">📄 파일 선택</label>
+                        </div>
+                    </div>
+
+                    <div class="subject-item">
+                        <label for="subject_english">영어</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="subject_english" accept=".csv,.xlsx" onchange="handleFileSelect(this, 'english_label')">
+                            <label for="subject_english" class="file-input-label" id="english_label">📄 파일 선택</label>
+                        </div>
+                    </div>
+
+                    <div class="subject-item">
+                        <label for="subject_history">한국사</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="subject_history" accept=".csv,.xlsx" onchange="handleFileSelect(this, 'history_label')">
+                            <label for="subject_history" class="file-input-label" id="history_label">📄 파일 선택</label>
+                        </div>
+                    </div>
+
+                    <div class="subject-item">
+                        <label for="subject_inquiry">탐구 (통합)</label>
+                        <div class="file-input-wrapper">
+                            <input type="file" id="subject_inquiry" accept=".csv,.xlsx" onchange="handleFileSelect(this, 'inquiry_label')">
+                            <label for="subject_inquiry" class="file-input-label" id="inquiry_label">📄 파일 선택</label>
+                        </div>
+                        <small style="color: #666; margin-top: 5px; display: block;">
+                            같은 수험번호 2줄로 작성 (탐구1, 탐구2)
+                        </small>
+                    </div>
+                </div>
+            </div>
+
+            <div class="button-group">
+                <button class="btn btn-primary" onclick="uploadFiles()">📤 파일 업로드</button>
+                <button class="btn btn-success" id="processBtn" onclick="processData()">🚀 성적표 생성</button>
+                <button class="btn btn-danger" onclick="clearData()">🗑️ 데이터 초기화</button>
+            </div>
+        </div>
+
+        <!-- 생성된 파일 목록 -->
+        <div class="card" id="filesCard" style="display: none;">
+            <h2>📥 생성된 성적표</h2>
+            <div id="fileList" class="file-list"></div>
+        </div>
+    </div>
+
+    <script>
+        let uploadedFiles = {};
+        let currentOutputDir = '';
+
+        function handleFileSelect(input, labelId) {
+            const label = document.getElementById(labelId);
+            if (input.files && input.files[0]) {
+                label.textContent = '✅ ' + input.files[0].name;
+                label.classList.add('has-file');
+            } else {
+                label.textContent = '📄 파일 선택';
+                label.classList.remove('has-file');
+            }
+        }
+
+        function showAlert(message, type = 'info') {
+            const alert = document.getElementById('alert');
+            alert.textContent = message;
+            alert.className = 'alert alert-' + type;
+            alert.style.display = 'block';
+            
+            setTimeout(() => {
+                alert.style.display = 'none';
+            }, 5000);
+        }
+
+        function showProgress(percent) {
+            const progress = document.getElementById('progress');
+            const progressBar = document.getElementById('progress-bar');
+            progress.style.display = 'block';
+            progressBar.style.width = percent + '%';
+            progressBar.textContent = percent + '%';
+        }
+
+        function hideProgress() {
+            document.getElementById('progress').style.display = 'none';
+        }
+
+        async function uploadFiles() {
+            const formData = new FormData();
+            
+            // 학생명 파일 (필수)
+            const studentNamesFile = document.getElementById('student_names').files[0];
+            if (!studentNamesFile) {
+                showAlert('학생명 파일을 선택해주세요.', 'error');
+                return;
+            }
+            formData.append('student_names', studentNamesFile);
+
+            // 등급컷 파일 (선택사항)
+            const gradeCutoffFile = document.getElementById('grade_cutoff').files[0];
+            if (gradeCutoffFile) {
+                formData.append('grade_cutoff', gradeCutoffFile);
+            }
+
+            // 과목 파일들
+            const subjects = ['korean', 'math', 'english', 'history', 'inquiry'];
+            let uploadCount = 0;
+            
+            subjects.forEach(subject => {
+                const input = document.getElementById('subject_' + subject);
+                if (input.files && input.files[0]) {
+                    formData.append('subject_' + subject, input.files[0]);
+                    uploadCount++;
+                }
+            });
+
+            if (uploadCount === 0) {
+                showAlert('최소 하나 이상의 과목 파일을 선택해주세요.', 'error');
+                return;
+            }
+
+            showProgress(0);
+            
+            try {
+                const response = await fetch('/upload', {
+                    method: 'POST',
+                    body: formData
+                });
+
+                showProgress(50);
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    showProgress(100);
+                    setTimeout(hideProgress, 1000);
+                } else {
+                    const errorMsg = '❌ 파일 업로드 실패\n\n' + (data.error || '알 수 없는 오류가 발생했습니다.') + '\n\n파일 형식을 확인해주세요.';
+                    showAlert(data.error || '업로드 실패', 'error');
+                    alert(errorMsg);
+                    hideProgress();
+                }
+            } catch (error) {
+                const errorMsg = '❌ 업로드 중 오류 발생\n\n' + error.message + '\n\n서버 연결을 확인하거나 파일을 다시 선택해주세요.';
+                showAlert('업로드 중 오류가 발생했습니다: ' + error.message, 'error');
+                alert(errorMsg);
+                hideProgress();
+            }
+        }
+
+        async function processData() {
+            const pdfTitle = document.getElementById('pdf_title').value;
+            const examName = document.getElementById('exam_name').value;
+
+            if (!pdfTitle || !examName) {
+                const errorMsg = '⚠️ 성적표 제목과 시험 회차를 입력해주세요.';
+                showAlert(errorMsg, 'error');
+                alert(errorMsg);
+                return;
+            }
+
+            showProgress(0);
+            showAlert('성적표를 생성하고 있습니다...', 'info');
+
+            try {
+                const response = await fetch('/process', {
+                    method: 'POST',
+                    headers: {
+                        'Content-Type': 'application/json'
+                    },
+                    body: JSON.stringify({
+                        pdf_title: pdfTitle,
+                        exam_name: examName
+                    })
+                });
+
+                showProgress(70);
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    currentOutputDir = data.output_dir;
+                    displayFileList(data.files, data.output_dir);
+                    showProgress(100);
+                    setTimeout(hideProgress, 1000);
+                } else {
+                    const errorMsg = '❌ 성적표 생성 실패\n\n' + (data.error || '알 수 없는 오류가 발생했습니다.');
+                    showAlert(data.error || '생성 실패', 'error');
+                    alert(errorMsg);
+                    hideProgress();
+                }
+            } catch (error) {
+                const errorMsg = '❌ 성적표 생성 중 오류 발생\n\n' + error.message + '\n\n서버 연결을 확인하거나 파일을 다시 업로드해주세요.';
+                showAlert('성적표 생성 중 오류가 발생했습니다: ' + error.message, 'error');
+                alert(errorMsg);
+                hideProgress();
+            }
+        }
+
+        function displayFileList(files, outputDir) {
+            const filesCard = document.getElementById('filesCard');
+            const fileList = document.getElementById('fileList');
+            
+            fileList.innerHTML = '';
+            
+            files.forEach(file => {
+                const fileItem = document.createElement('div');
+                fileItem.className = 'file-item';
+                fileItem.innerHTML = `
+                    <span class="file-name">📄 ${file}</span>
+                    <a href="/download/${outputDir}/${file}" class="download-btn" download>다운로드</a>
+                `;
+                fileList.appendChild(fileItem);
+            });
+
+            filesCard.style.display = 'block';
+        }
+
+        async function clearData() {
+            if (!confirm('모든 데이터를 초기화하시겠습니까?')) {
+                return;
+            }
+
+            try {
+                const response = await fetch('/clear-data', {
+                    method: 'POST'
+                });
+
+                const data = await response.json();
+                
+                if (data.success) {
+                    showAlert(data.message, 'success');
+                    
+                    // 폼 초기화
+                    document.querySelectorAll('input[type="file"]').forEach(input => {
+                        input.value = '';
+                    });
+                    document.querySelectorAll('.file-input-label').forEach(label => {
+                        label.textContent = '📄 파일 선택';
+                        label.classList.remove('has-file');
+                    });
+                    
+                    document.getElementById('processBtn').disabled = true;
+                    document.getElementById('filesCard').style.display = 'none';
+                } else {
+                    showAlert(data.error || '초기화 실패', 'error');
+                }
+            } catch (error) {
+                showAlert('초기화 중 오류가 발생했습니다: ' + error.message, 'error');
+            }
+        }
+    </script>
+</body>
+</html>
+
